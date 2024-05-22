@@ -8,13 +8,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     int boardWidth = 800;
     int boardHeight = 640;
 
-    //images
+    // Images
     Image backgroundImg;
     Image birdImg;
     Image topPipeImg;
     Image bottomPipeImg;
 
-    //bird class
+    // Bird class
     int birdWidth = 34;
     int birdHeight = 24;
 
@@ -31,10 +31,10 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         }
     }
 
-    //pipe class
+    // Pipe class
     int pipeX = boardWidth;
     int pipeY = 0;
-    int pipeWidth = 64;  //scaled by 1/6
+    int pipeWidth = 64;  // Scaled by 1/6
     int pipeHeight = 512;
 
     class Pipe {
@@ -50,10 +50,10 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         }
     }
 
-    //game logic
+    // Game logic
     ArrayList<Bird> birds;
     ArrayList<Integer> velocitiesY;
-    int velocityX = -4; // move pipes to the left speed (simulates bird moving right)
+    int velocityX = -4; // Move pipes to the left speed (simulates bird moving right)
     int gravity = 1;
 
     ArrayList<Pipe> pipes;
@@ -66,6 +66,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     int numberOfPlayers;
     App app;
     JButton restartButton;
+    JButton menuButton;
 
     FlappyBird(int numberOfPlayers, App app) {
         this.numberOfPlayers = numberOfPlayers;
@@ -75,24 +76,24 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         setFocusable(true);
         addKeyListener(this);
 
-        //load images
+        // Load images
         backgroundImg = new ImageIcon(getClass().getResource("./flappybirdbg.png")).getImage();
         birdImg = new ImageIcon(getClass().getResource("./flappybird.png")).getImage();
         topPipeImg = new ImageIcon(getClass().getResource("./toppipe.png")).getImage();
         bottomPipeImg = new ImageIcon(getClass().getResource("./bottompipe.png")).getImage();
 
-        //initialize birds and velocities
+        // Initialize birds and velocities
         birds = new ArrayList<>();
         velocitiesY = new ArrayList<>();
 
         for (int i = 0; i < numberOfPlayers; i++) {
-            birds.add(new Bird(boardWidth / 8, boardHeight / 2 - birdHeight / 2, birdImg));
+            birds.add(new Bird(boardWidth / 8, boardHeight / 2 + i * birdHeight * 2, birdImg));
             velocitiesY.add(0);
         }
 
         pipes = new ArrayList<>();
 
-        //place pipes timer
+        // Place pipes timer
         placePipeTimer = new Timer(1500, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -101,13 +102,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         });
         placePipeTimer.start();
 
-        //game timer
-        gameLoop = new Timer(1000 / 60, this); //how long it takes to start timer, milliseconds gone between frames 
+        // Game timer
+        gameLoop = new Timer(1000 / 60, this); // How long it takes to start timer, milliseconds gone between frames 
         gameLoop.start();
 
-        //restart button
+        // Restart button
         restartButton = new JButton("Restart");
-        restartButton.setFont(new Font("Arial", Font.PLAIN, 24));
+        restartButton.setFont(new Font("Poppins", Font.PLAIN, 24));
         restartButton.setBounds(boardWidth / 2 - 75, boardHeight / 2 - 25, 150, 50);
         restartButton.addActionListener(new ActionListener() {
             @Override
@@ -116,12 +117,32 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             }
         });
         restartButton.setVisible(false);
+
+        // Menu button
+        menuButton = new JButton("Menu");
+        menuButton.setFont(new Font("Poppins", Font.PLAIN, 24));
+        menuButton.setBounds(boardWidth / 2 - 75, boardHeight / 2 + 35, 150, 50);
+        menuButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                app.showHomePage(); // Change this to a new method in App to show the home page
+            }
+        });
+        menuButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // app.endGame((int) score);
+            }
+        });
+        menuButton.setVisible(false);
+
         this.setLayout(null);
         this.add(restartButton);
+        this.add(menuButton);
     }
 
     void placePipes() {
-        int randomPipeY = (int) (-pipeHeight / 2 - Math.random() * (pipeHeight / 2));
+        int randomPipeY = (int) (pipeY - pipeHeight / 4 - Math.random() * (pipeHeight / 2));
         int openingSpace = boardHeight / 4;
 
         Pipe topPipe = new Pipe(topPipeImg);
@@ -155,86 +176,119 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
         // Draw score
         g.setColor(Color.white);
-        g.setFont(new Font("Arial", Font.PLAIN, 32));
+        g.setFont(new Font("Poppins", Font.PLAIN, 32));
+        g.drawString("Score: " + (int) score, 10, 35);
+        g.drawString("High Score: " + app.highScore, boardWidth - 250, 35);
+
         if (gameOver) {
-            g.drawString("Game Over", boardWidth / 2 - 90, boardHeight / 2 - 100);
-        } else {
-            g.drawString("Score: " + (int) score, 20, 40);
+            g.drawString("Game Over", boardWidth / 2 - 75, boardHeight / 2 - 50);
+            restartButton.setVisible(true);
+            menuButton.setVisible(true);
         }
     }
 
     public void move() {
-        if (!gameOver) {
-            for (int i = 0; i < numberOfPlayers; i++) {
-                int newY = birds.get(i).y + velocitiesY.get(i);
-                velocitiesY.set(i, velocitiesY.get(i) + gravity);
-                birds.get(i).y = newY;
+        for (int i = 0; i < birds.size(); i++) {
+            Bird bird = birds.get(i);
+            int velocityY = velocitiesY.get(i);
+    
+            // Bird movement
+            velocityY += gravity;
+            bird.y += velocityY;
+            bird.y = Math.max(bird.y, 0); // Prevent the bird from going above the canvas
+            velocitiesY.set(i, velocityY);
+    
+            // Check for out-of-bounds
+            if (bird.y > boardHeight || bird.y < 0) {
+                stopGame();
             }
-
-            for (Pipe pipe : pipes) {
+    
+            // Pipe movement
+            for (int j = 0; j < pipes.size(); j++) {
+                Pipe pipe = pipes.get(j);
                 pipe.x += velocityX;
-            }
-
-            // Remove pipes that have gone off screen
-            pipes.removeIf(pipe -> pipe.x + pipe.width < 0);
-
-            // Check for collisions
-            for (Bird bird : birds) {
-                for (Pipe pipe : pipes) {
-                    if (bird.x < pipe.x + pipe.width &&
-                        bird.x + bird.width > pipe.x &&
-                        bird.y < pipe.y + pipe.height &&
-                        bird.y + bird.height > pipe.y) {
-                        gameOver = true;
-                        placePipeTimer.stop();
-                        restartButton.setVisible(true);
-                    }
-                }
-            }
-
-            // Update score
-            for (Pipe pipe : pipes) {
-                if (pipe.x + pipe.width < birds.get(0).x && !pipe.passed) {
+    
+                // Check if the bird passed the pipe
+                if (!pipe.passed && bird.x > pipe.x + pipe.width) {
+                    score += 0.5; // 0.5 because there are 2 pipes! so 0.5 * 2 = 1, 1 for each set of pipes
                     pipe.passed = true;
-                    score++;
+                }
+    
+                // Check for collision
+                if (collision(bird, pipe)) {
+                    stopGame();
                 }
             }
+        }
+    }
+    
 
+    boolean collision(Bird a, Pipe b) {
+        return a.x < b.x + b.width &&   // a's top left corner doesn't reach b's top right corner
+               a.x + a.width > b.x &&   // a's top right corner passes b's top left corner
+               a.y < b.y + b.height &&  // a's top left corner doesn't reach b's bottom left corner
+               a.y + a.height > b.y;    // a's bottom left corner passes b's top left corner
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (!gameOver) {
+            move();
             repaint();
         }
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
-        move();
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            velocitiesY.set(0, -9); // Player 1 jump
+
+            if (gameOver) {
+                restartGame();
+            }
+        } else if (e.getKeyCode() == KeyEvent.VK_W && numberOfPlayers == 2) {
+            velocitiesY.set(1, -9); // Player 2 jump (W key for player 2)
+
+            if (gameOver) {
+                restartGame();
+            }
+        }
     }
 
     @Override
     public void keyTyped(KeyEvent e) {}
 
     @Override
-    public void keyPressed(KeyEvent e) {
-        int key = e.getKeyCode();
-        if (key == KeyEvent.VK_SPACE || key == KeyEvent.VK_UP) {
-            for (int i = 0; i < numberOfPlayers; i++) {
-                velocitiesY.set(i, -10);
-            }
-        }
-    }
-
-    @Override
     public void keyReleased(KeyEvent e) {}
 
-    public void restartGame() {
+    private void stopGame() {
+        placePipeTimer.stop();
+        gameLoop.stop();
+        gameOver = true;
+        if (score > app.getHighScore()) {
+            app.setHighScore((int) score);
+        }
+        restartButton.setVisible(true);
+        menuButton.setVisible(true);
+        repaint();
+    }
+    
+    
+
+
+    private void restartGame() {
+        for (int i = 0; i < birds.size(); i++) {
+            Bird bird = birds.get(i);
+            bird.y = boardWidth / 2 + i * birdHeight * 2;
+            velocitiesY.set(i, 0);
+        }
+        pipes.clear();
         gameOver = false;
         score = 0;
-        pipes.clear();
-        velocitiesY.clear();
-        for (int i = 0; i < numberOfPlayers; i++) {
-            birds.set(i, new Bird(boardWidth / 8, boardHeight / 2 - birdHeight / 2, birdImg));
-            velocitiesY.add(0);
-        }
-        placePipeTimer.start();
         restartButton.setVisible(false);
-    }
+        menuButton.setVisible(false);
+        placePipeTimer.start();
+        gameLoop.start();
+        requestFocusInWindow(); // Ensure the game panel regains focus for key events
+    }    
 }

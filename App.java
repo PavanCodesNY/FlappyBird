@@ -2,11 +2,11 @@ import javax.swing.*;
 import java.awt.*;
 
 public class App {
-    private JFrame frame;
-    private HomePage homePage;
-    private FlappyBird gamePanel;
-    private CountdownPanel countdownPanel;
-    private int highScore;
+    JFrame frame;
+    HomePage homePage;
+    FlappyBird gamePanel;
+    CountdownPanel countdownPanel;
+    int highScore;
 
     public App() {
         frame = new JFrame("Flappy Bird");
@@ -40,15 +40,24 @@ public class App {
         gamePanel.requestFocusInWindow();
     }
 
+    // In App class
+
     public void endGame(int score) {
         if (score > highScore) {
             highScore = score;
         }
-        frame.getContentPane().removeAll();
-        homePage = new HomePage(this, highScore);
-        frame.add(homePage);
+        homePage.updateHighScore(highScore);
         frame.revalidate();
         frame.repaint();
+    }
+    
+    public int getHighScore() {
+        return highScore;
+    }
+    
+    public void setHighScore(int highScore) {
+        this.highScore = highScore;
+        homePage.updateHighScore(highScore);
     }
 
     public static void main(String[] args) {
@@ -59,4 +68,12 @@ public class App {
             }
         });
     }
+
+    public void showHomePage() {
+        frame.getContentPane().removeAll();
+        homePage = new HomePage(this, highScore);
+        frame.add(homePage);
+        frame.revalidate();
+        frame.repaint();
+    }   
 }
