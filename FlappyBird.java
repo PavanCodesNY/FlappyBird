@@ -11,6 +11,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     // Images
     Image backgroundImg;
     Image birdImg;
+    Image birdBlue;
     Image topPipeImg;
     Image bottomPipeImg;
 
@@ -54,7 +55,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     ArrayList<Bird> birds;
     ArrayList<Integer> velocitiesY;
     int velocityX = -4; // Move pipes to the left speed (simulates bird moving right)
-    int gravity = 1;
+    int gravity = -1;
 
     ArrayList<Pipe> pipes;
     Random random = new Random();
@@ -79,6 +80,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         // Load images
         backgroundImg = new ImageIcon(getClass().getResource("./flappybirdbg.png")).getImage();
         birdImg = new ImageIcon(getClass().getResource("./flappybird.png")).getImage();
+        birdBlue = new ImageIcon(getClass().getResource("./blueFlappy.png")).getImage();
         topPipeImg = new ImageIcon(getClass().getResource("./toppipe.png")).getImage();
         bottomPipeImg = new ImageIcon(getClass().getResource("./bottompipe.png")).getImage();
 
@@ -86,8 +88,17 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         birds = new ArrayList<>();
         velocitiesY = new ArrayList<>();
 
-        for (int i = 0; i < numberOfPlayers; i++) {
-            birds.add(new Bird(boardWidth / 8, boardHeight / 2 + i * birdHeight * 2, birdImg));
+        // for (int i = 0; i < numberOfPlayers; i++) {
+        //     birds.add(new Bird(boardWidth / 8, boardHeight / 2 + i * birdHeight * 2, birdImg));
+        //     velocitiesY.add(0);
+        // }
+        if(numberOfPlayers == 1){
+            birds.add(new Bird(boardWidth / 8, boardHeight / 2 + 1 * birdHeight * 2, birdImg));
+            velocitiesY.add(0);
+        } else if(numberOfPlayers == 2){
+            birds.add(new Bird(boardWidth / 8, boardHeight / 2 + 1 * birdHeight * 2, birdImg));
+            velocitiesY.add(0);
+            birds.add(new Bird(boardWidth / 8, boardHeight / 2 + 2 * birdHeight * 2, birdBlue));
             velocitiesY.add(0);
         }
 
@@ -125,7 +136,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         menuButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                app.showHomePage(); // Change this to a new method in App to show the home page
+                app.showHomePage(); 
             }
         });
         menuButton.addActionListener(new ActionListener() {
@@ -210,7 +221,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     
                 // Check if the bird passed the pipe
                 if (!pipe.passed && bird.x > pipe.x + pipe.width) {
-                    score += 0.5; // 0.5 because there are 2 pipes! so 0.5 * 2 = 1, 1 for each set of pipes
+                    score += 0.5;
                     pipe.passed = true;
                 }
     
@@ -241,13 +252,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            velocitiesY.set(0, -9); // Player 1 jump
+            velocitiesY.set(0, 15); // Player 1 jump
 
             if (gameOver) {
                 restartGame();
             }
         } else if (e.getKeyCode() == KeyEvent.VK_W && numberOfPlayers == 2) {
-            velocitiesY.set(1, -9); // Player 2 jump (W key for player 2)
+            velocitiesY.set(1, 15); // Player 2 jump (W key for player 2)
 
             if (gameOver) {
                 restartGame();

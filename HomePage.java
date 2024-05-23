@@ -13,7 +13,7 @@ public class HomePage extends JPanel {
         this.highScore = highScore;
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-        JLabel titleLabel = new JLabel("Flappy Bird");
+        JLabel titleLabel = new JLabel("Reverse Flappy Bird ↺ ↻");
         titleLabel.setFont(new Font("Poppins", Font.BOLD, 48));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
